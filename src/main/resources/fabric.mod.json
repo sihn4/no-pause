@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "nopause",
+  "version": "${version}",
+  "name": "No Pause",
+  "description": "A lightweight mod that allows you to tab out without Minecraft's force pause screen popping up.",
+  "authors": ["Layne"],
+  "license": "MIT",
+  "icon": "assets/nopause/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.layne.nopause.NoPauseClient"]
+  },
+  "mixins": ["nopause.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "1.21.11",
+    "java": ">=21"
+  }
+}
