@@ -1,0 +1,130 @@
+name: Publish to Modrinth
+
+on:
+  workflow_dispatch:
+    inputs:
+      minecraft_version:
+        description: "Minecraft version"
+        required: true
+        default: "1.21.11"
+
+      loader:
+        description: "Loader"
+        required: true
+        type: choice
+        options:
+          - fabric
+          - neoforge
+
+      mod_version:
+        description: "No Pause version"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pick Java version
+        id: java
+        shell: bash
+        run: |
+          MC="${{ inputs.minecraft_version }}"
+
+          if [[ "$MC" == 26.* ]]; then
+            echo "version=25" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=21" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "${{ steps.java.outputs.version }}"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.7.1"
+
+      - name: Build Fabric
+        if: inputs.loader == 'fabric'
+        run: |
+          chmod +x build-version.sh
+          ./build-version.sh "${{ inputs.minecraft_version }}"
+
+      - name: Build NeoForge
+        if: inputs.loader == 'neoforge'
+        run: |
+          chmod +x build-neoforge.sh
+          ./build-neoforge.sh "${{ inputs.minecraft_version }}"
+
+      - name: Find built JAR
+        id: jar
+        shell: bash
+        run: |
+          JAR=$(find dist -maxdepth 1 -type f -name "*.jar" | head -n1)
+
+          if [[ -z "$JAR" ]]; then
+            echo "No JAR was built."
+            exit 1
+          fi
+
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+          echo "Found $JAR"
+
+      - name: Create Modrinth version
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ secrets.MODRINTH_PROJECT_ID }}
+        shell: bash
+        run: |
+          MC="${{ inputs.minecraft_version }}"
+          LOADER="${{ inputs.loader }}"
+          MOD_VERSION="${{ inputs.mod_version }}"
+          JAR="${{ steps.jar.outputs.path }}"
+
+          if [[ "$LOADER" == "fabric" ]]; then
+            LOADERS='["fabric","quilt"]'
+            VERSION_NUMBER="${MOD_VERSION}+fabric.${MC}"
+            VERSION_NAME="No Pause ${MOD_VERSION} - Fabric/Quilt ${MC}"
+          else
+            LOADERS='["neoforge"]'
+            VERSION_NUMBER="${MOD_VERSION}+neoforge.${MC}"
+            VERSION_NAME="No Pause ${MOD_VERSION} - NeoForge ${MC}"
+          fi
+
+          jq -n \
+            --arg name "$VERSION_NAME" \
+            --arg number "$VERSION_NUMBER" \
+            --arg project "$MODRINTH_PROJECT_ID" \
+            --arg mc "$MC" \
+            --argjson loaders "$LOADERS" \
+            '{
+              name: $name,
+              version_number: $number,
+              project_id: $project,
+              game_versions: [$mc],
+              version_type: "release",
+              loaders: $loaders,
+              featured: false,
+              status: "listed",
+              environment: "client_only",
+              dependencies: [],
+              file_parts: ["file"],
+              primary_file: "file",
+              changelog: "Initial No Pause release for this Minecraft version."
+            }' > /tmp/modrinth.json
+
+          curl --fail-with-body \
+            -X POST \
+            -A "NoPause-GitHub-Publisher/1.0" \
+            -H "Authorization: $MODRINTH_TOKEN" \
+            -F "data=</tmp/modrinth.json;type=application/json" \
+            -F "file=@${JAR};type=application/java-archive" \
+            https://api.modrinth.com/v2/version
