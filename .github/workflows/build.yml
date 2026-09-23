@@ -1,0 +1,113 @@
+name: Build all Minecraft versions
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Minecraft ${{ matrix.target.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - mc: "1.14.4"
+            java_target: "8"
+          - mc: "1.15"
+            java_target: "8"
+          - mc: "1.15.1"
+            java_target: "8"
+          - mc: "1.15.2"
+            java_target: "8"
+          - mc: "1.16"
+            java_target: "8"
+          - mc: "1.16.1"
+            java_target: "8"
+          - mc: "1.16.2"
+            java_target: "8"
+          - mc: "1.16.3"
+            java_target: "8"
+          - mc: "1.16.4"
+            java_target: "8"
+          - mc: "1.16.5"
+            java_target: "8"
+          - mc: "1.17"
+            java_target: "16"
+          - mc: "1.17.1"
+            java_target: "16"
+          - mc: "1.18"
+            java_target: "17"
+          - mc: "1.18.1"
+            java_target: "17"
+          - mc: "1.18.2"
+            java_target: "17"
+          - mc: "1.19"
+            java_target: "17"
+          - mc: "1.19.1"
+            java_target: "17"
+          - mc: "1.19.2"
+            java_target: "17"
+          - mc: "1.19.3"
+            java_target: "17"
+          - mc: "1.19.4"
+            java_target: "17"
+          - mc: "1.20.1"
+            java_target: "17"
+          - mc: "1.20.2"
+            java_target: "17"
+          - mc: "1.20.4"
+            java_target: "17"
+          - mc: "1.20.6"
+            java_target: "21"
+          - mc: "1.21"
+            java_target: "21"
+          - mc: "1.21.1"
+            java_target: "21"
+          - mc: "1.21.3"
+            java_target: "21"
+          - mc: "1.21.4"
+            java_target: "21"
+          - mc: "1.21.5"
+            java_target: "21"
+          - mc: "1.21.6"
+            java_target: "21"
+          - mc: "1.21.7"
+            java_target: "21"
+          - mc: "1.21.8"
+            java_target: "21"
+          - mc: "1.21.9"
+            java_target: "21"
+          - mc: "1.21.10"
+            java_target: "21"
+          - mc: "1.21.11"
+            java_target: "21"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 for Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.7.1"
+
+      - name: Build
+        run: |
+          gradle clean build \
+            -Pminecraft_version="${{ matrix.target.mc }}" \
+            -Pjava_version="${{ matrix.target.java_target }}"
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: no-pause-mc${{ matrix.target.mc }}
+          path: build/libs/no-pause-mc${{ matrix.target.mc }}-1.0.0.jar
+          if-no-files-found: error

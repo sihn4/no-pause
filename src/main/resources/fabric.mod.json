@@ -13,8 +13,7 @@
   },
   "mixins": ["nopause.mixins.json"],
   "depends": {
-    "fabricloader": ">=0.18.1",
-    "minecraft": "1.21.11",
-    "java": ">=21"
+    "fabricloader": ">=0.14.0",
+    "minecraft": "${minecraft_version}"
   }
 }

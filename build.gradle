@@ -2,11 +2,16 @@ plugins {
     id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
 }
 
-version = '1.0.0'
+def minecraftVersion = providers.gradleProperty('minecraft_version').getOrElse('1.21.11')
+def targetJava = Integer.parseInt(providers.gradleProperty('java_version').getOrElse('21'))
+def modVersion = providers.gradleProperty('mod_version').getOrElse('1.0.0')
+def loaderVersion = providers.gradleProperty('loader_version').getOrElse('0.19.4')
+
+version = modVersion
 group = 'dev.layne'
 
 base {
-    archivesName = 'no-pause'
+    archivesName = "no-pause-mc${minecraftVersion}"
 }
 
 repositories {
@@ -14,23 +19,29 @@ repositories {
 }
 
 dependencies {
-    minecraft 'com.mojang:minecraft:1.21.11'
+    minecraft "com.mojang:minecraft:${minecraftVersion}"
     mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.18.1'
+    modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
 }
 
 processResources {
-    inputs.property 'version', project.version
+    inputs.property 'version', modVersion
+    inputs.property 'minecraft_version', minecraftVersion
+
     filesMatching('fabric.mod.json') {
-        expand 'version': project.version
+        expand(
+            version: modVersion,
+            minecraft_version: minecraftVersion
+        )
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.release = 21
+    options.release = targetJava
+    options.encoding = 'UTF-8'
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.toVersion(targetJava)
+    targetCompatibility = JavaVersion.toVersion(targetJava)
 }
