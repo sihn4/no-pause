@@ -1,74 +1,67 @@
 # No Pause
 
-A lightweight Fabric client mod that allows you to tab out without Minecraft's force pause screen popping up.
+A lightweight mod that allows you to tab out without Minecraft's force pause screen popping up.
 
-## Why it is lightweight
+## Loaders
 
-- Client-side only
-- No Fabric API dependency
-- No config screen
-- No HUD
-- No commands
-- No background tick loop
-- One startup assignment
-- One tiny focus-change mixin
+### Fabric
+The `legacy/` and `modern/` projects contain the Fabric builds.
 
-## Multi-version source
+### Quilt
+Quilt does **not** need a separate port for this mod. Quilt Loader can load almost
+all Fabric mods, and No Pause has no Fabric API dependency. Use the corresponding
+Fabric JAR on Quilt. See `QUILT.md`.
 
-This repository uses one shared source tree and builds a separate JAR for each Minecraft version.
+### NeoForge
+`neoforge/` is a separate NeoForge port because NeoForge cannot load Fabric/Quilt mods.
 
-Configured targets:
+Pinned NeoForge targets currently included:
 
-1.14.4, 1.15, 1.15.1, 1.15.2, 1.16, 1.16.1, 1.16.2, 1.16.3, 1.16.4, 1.16.5, 1.17, 1.17.1, 1.18, 1.18.1, 1.18.2, 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4, 1.20.1, 1.20.2, 1.20.4, 1.20.6, 1.21, 1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11
+- Minecraft 1.21.10 -> NeoForge 21.10.64
+- Minecraft 1.21.11 -> NeoForge 21.11.45
+- Minecraft 26.1 -> NeoForge 26.1.0.19-beta
+- Minecraft 26.1.1 -> NeoForge 26.1.1.15-beta
+- Minecraft 26.1.2 -> NeoForge 26.1.2.109
+- Minecraft 26.2 -> NeoForge 26.2.0.88
 
-The build matrix intentionally makes a separate JAR per Minecraft version instead of pretending one JAR is safe everywhere.
+NeoForge 26.3 is intentionally **not claimed yet** in this source. The Minecraft
+26.3 release exists, but the official NeoForge Maven release index did not yet
+contain a published 26.3 artifact when this source was generated.
 
-## Build one version
+## Build
 
-Example:
+Fabric example:
 
 ```bash
 ./build-version.sh 1.21.11
 ```
 
-Output:
-
-```text
-dist/no-pause-mc1.21.11-1.0.0.jar
-```
-
-Another example:
+NeoForge example:
 
 ```bash
-./build-version.sh 1.20.1
+./build-neoforge.sh 1.21.11
 ```
 
-## Build every configured version
+or:
 
 ```bash
-./build-all.sh
+./build-neoforge.sh 26.2
 ```
 
-Successful JARs are copied into `dist/`. The script continues through the list and gives a pass/fail summary at the end.
+Successful JARs are copied into `dist/`.
 
-## GitHub Actions
+## Design
 
-`.github/workflows/build.yml` builds every configured Minecraft version independently whenever you push.
+- client-side
+- no Fabric API dependency
+- no config
+- no commands
+- no HUD
+- no background tick loop
+- one tiny focus-change mixin
+- your custom icon is included
 
-That is useful before marking a version as supported on Modrinth: check that its GitHub Actions job is green first.
+## Before Modrinth
 
-## Requirements
-
-Gradle runs using Java 21. The build itself targets the bytecode level appropriate for each Minecraft generation.
-
-## Mod icon
-
-The mod icon is stored at:
-
-```text
-src/main/resources/assets/nopause/icon.png
-```
-
-## License
-
-MIT
+Do not mark a loader/version as supported until that exact build is green in CI
+and ideally has been launched once in that loader.

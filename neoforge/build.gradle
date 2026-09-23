@@ -1,0 +1,62 @@
+plugins {
+    id "java"
+    id "net.neoforged.moddev" version "2.0.147"
+}
+
+def mc = providers.gradleProperty("minecraft_version").get()
+def neo = providers.gradleProperty("neo_version").get()
+def targetJava = Integer.parseInt(providers.gradleProperty("java_version").get())
+def modVersion = providers.gradleProperty("mod_version").getOrElse("1.0.0")
+
+group = "dev.layne"
+version = modVersion
+
+base {
+    archivesName = "no-pause-neoforge-mc${mc}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJava)
+    }
+}
+
+neoForge {
+    version = neo
+
+    runs {
+        client {
+            client()
+        }
+    }
+
+    mods {
+        nopause {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+processResources {
+    def props = [
+        mod_id: providers.gradleProperty("mod_id").get(),
+        mod_name: providers.gradleProperty("mod_name").get(),
+        mod_version: modVersion,
+        mod_authors: providers.gradleProperty("mod_authors").get(),
+        mod_license: providers.gradleProperty("mod_license").get(),
+        mod_description: providers.gradleProperty("mod_description").get(),
+        minecraft_version: mc,
+        neo_version: neo
+    ]
+
+    inputs.properties props
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand props
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = targetJava
+}

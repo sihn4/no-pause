@@ -6,62 +6,76 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 
-MC_VERSION="$1"
+MC="$1"
+PROJECT=""
+JAVA_TARGET=""
+LOADER="0.18.1"
+LOOM=""
+GRADLE_RECOMMENDED=""
 
-if ! grep -Fxq "$MC_VERSION" versions.txt; then
-  echo "Unsupported target: $MC_VERSION"
-  echo "See versions.txt"
-  exit 1
-fi
-
-case "$MC_VERSION" in
-  "1.14.4") JAVA_VERSION=8 ;;
-  "1.15") JAVA_VERSION=8 ;;
-  "1.15.1") JAVA_VERSION=8 ;;
-  "1.15.2") JAVA_VERSION=8 ;;
-  "1.16") JAVA_VERSION=8 ;;
-  "1.16.1") JAVA_VERSION=8 ;;
-  "1.16.2") JAVA_VERSION=8 ;;
-  "1.16.3") JAVA_VERSION=8 ;;
-  "1.16.4") JAVA_VERSION=8 ;;
-  "1.16.5") JAVA_VERSION=8 ;;
-  "1.17") JAVA_VERSION=16 ;;
-  "1.17.1") JAVA_VERSION=16 ;;
-  "1.18") JAVA_VERSION=17 ;;
-  "1.18.1") JAVA_VERSION=17 ;;
-  "1.18.2") JAVA_VERSION=17 ;;
-  "1.19") JAVA_VERSION=17 ;;
-  "1.19.1") JAVA_VERSION=17 ;;
-  "1.19.2") JAVA_VERSION=17 ;;
-  "1.19.3") JAVA_VERSION=17 ;;
-  "1.19.4") JAVA_VERSION=17 ;;
-  "1.20.1") JAVA_VERSION=17 ;;
-  "1.20.2") JAVA_VERSION=17 ;;
-  "1.20.4") JAVA_VERSION=17 ;;
-  "1.20.6") JAVA_VERSION=21 ;;
-  "1.21") JAVA_VERSION=21 ;;
-  "1.21.1") JAVA_VERSION=21 ;;
-  "1.21.3") JAVA_VERSION=21 ;;
-  "1.21.4") JAVA_VERSION=21 ;;
-  "1.21.5") JAVA_VERSION=21 ;;
-  "1.21.6") JAVA_VERSION=21 ;;
-  "1.21.7") JAVA_VERSION=21 ;;
-  "1.21.8") JAVA_VERSION=21 ;;
-  "1.21.9") JAVA_VERSION=21 ;;
-  "1.21.10") JAVA_VERSION=21 ;;
-  "1.21.11") JAVA_VERSION=21 ;;
-  *) echo "No Java target configured for $MC_VERSION"; exit 1 ;;
+case "$MC" in
+  "1.14.4") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.15") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.15.1") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.15.2") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16.1") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16.2") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16.3") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16.4") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.16.5") PROJECT="legacy"; JAVA_TARGET="8";;
+  "1.17") PROJECT="legacy"; JAVA_TARGET="16";;
+  "1.17.1") PROJECT="legacy"; JAVA_TARGET="16";;
+  "1.18") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.18.1") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.18.2") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.19") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.19.1") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.19.2") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.19.3") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.19.4") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.20.1") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.20.2") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.20.4") PROJECT="legacy"; JAVA_TARGET="17";;
+  "1.20.6") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.1") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.3") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.4") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.5") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.6") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.7") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.8") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.9") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.10") PROJECT="legacy"; JAVA_TARGET="21";;
+  "1.21.11") PROJECT="legacy"; JAVA_TARGET="21";;
+  "26.1") PROJECT="modern"; JAVA_TARGET="25"; LOADER="0.18.4"; LOOM="1.15-SNAPSHOT"; GRADLE_RECOMMENDED="9.4.0";;
+  "26.1.1") PROJECT="modern"; JAVA_TARGET="25"; LOADER="0.18.4"; LOOM="1.15-SNAPSHOT"; GRADLE_RECOMMENDED="9.4.0";;
+  "26.1.2") PROJECT="modern"; JAVA_TARGET="25"; LOADER="0.19.3"; LOOM="1.17-SNAPSHOT"; GRADLE_RECOMMENDED="9.5.1";;
+  "26.2") PROJECT="modern"; JAVA_TARGET="25"; LOADER="0.19.3"; LOOM="1.17-SNAPSHOT"; GRADLE_RECOMMENDED="9.5.1";;
+  "26.3") PROJECT="modern"; JAVA_TARGET="25"; LOADER="0.19.5"; LOOM="1.17-SNAPSHOT"; GRADLE_RECOMMENDED="9.6.0";;
+  *)
+    echo "Unsupported target: $MC"
+    echo "See versions.txt"
+    exit 1
+    ;;
 esac
-
-echo "Building No Pause for Minecraft $MC_VERSION (Java $JAVA_VERSION target)..."
-
-gradle clean build \
-  -Pminecraft_version="$MC_VERSION" \
-  -Pjava_version="$JAVA_VERSION"
 
 mkdir -p dist
 
-JAR="build/libs/no-pause-mc${MC_VERSION}-1.0.0.jar"
+if [[ "$PROJECT" == "legacy" ]]; then
+  echo "Building No Pause for Minecraft $MC (legacy/remapped, Java target $JAVA_TARGET)"
+  gradle -p legacy clean build     -Pminecraft_version="$MC"     -Pjava_version="$JAVA_TARGET"     -Ploader_version="$LOADER"
+  JAR="legacy/build/libs/no-pause-mc${MC}-1.0.0.jar"
+else
+  CURRENT_JAVA="$(java -version 2>&1 | head -n1)"
+  echo "Building No Pause for Minecraft $MC (modern/unobfuscated, Java 25)"
+  echo "Java: $CURRENT_JAVA"
+  echo "Fabric Loom: $LOOM | Loader: $LOADER | recommended Gradle: $GRADLE_RECOMMENDED"
+  gradle -p modern clean build     -Pminecraft_version="$MC"     -Ploader_version="$LOADER"     -Ploom_version="$LOOM"
+  JAR="modern/build/libs/no-pause-mc${MC}-1.0.0.jar"
+fi
+
 if [[ ! -f "$JAR" ]]; then
   echo "Expected JAR not found: $JAR"
   exit 1

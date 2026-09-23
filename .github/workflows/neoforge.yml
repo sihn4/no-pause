@@ -1,0 +1,59 @@
+name: Build NeoForge versions
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  neoforge:
+    name: NeoForge / Minecraft ${{ matrix.target.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - mc: "1.21.10"
+            neo: "21.10.64"
+            java: "21"
+          - mc: "1.21.11"
+            neo: "21.11.45"
+            java: "21"
+          - mc: "26.1"
+            neo: "26.1.0.19-beta"
+            java: "25"
+          - mc: "26.1.1"
+            neo: "26.1.1.15-beta"
+            java: "25"
+          - mc: "26.1.2"
+            neo: "26.1.2.109"
+            java: "25"
+          - mc: "26.2"
+            neo: "26.2.0.88"
+            java: "25"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Gradle JVM
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.7.1"
+
+      - name: Build
+        run: |
+          gradle -p neoforge clean build             -Pminecraft_version="${{ matrix.target.mc }}"             -Pneo_version="${{ matrix.target.neo }}"             -Pjava_version="${{ matrix.target.java }}"
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: no-pause-neoforge-mc${{ matrix.target.mc }}
+          path: neoforge/build/libs/no-pause-neoforge-mc${{ matrix.target.mc }}-1.0.0.jar
+          if-no-files-found: error

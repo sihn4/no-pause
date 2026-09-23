@@ -1,0 +1,41 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+group = 'dev.layne'
+version = project.mod_version
+
+base {
+    archivesName = "no-pause-mc${project.minecraft_version}"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+}
+
+processResources {
+    inputs.property 'version', project.mod_version
+    inputs.property 'minecraft_version', project.minecraft_version
+
+    filesMatching('fabric.mod.json') {
+        expand(
+            version: project.mod_version,
+            minecraft_version: project.minecraft_version
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+    options.encoding = 'UTF-8'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}

@@ -2,16 +2,16 @@ plugins {
     id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
 }
 
-def minecraftVersion = providers.gradleProperty('minecraft_version').getOrElse('1.21.11')
-def targetJava = Integer.parseInt(providers.gradleProperty('java_version').getOrElse('21'))
+def mc = providers.gradleProperty('minecraft_version').get()
+def targetJava = Integer.parseInt(providers.gradleProperty('java_version').get())
+def loader = providers.gradleProperty('loader_version').getOrElse('0.18.1')
 def modVersion = providers.gradleProperty('mod_version').getOrElse('1.0.0')
-def loaderVersion = providers.gradleProperty('loader_version').getOrElse('0.19.4')
 
-version = modVersion
 group = 'dev.layne'
+version = modVersion
 
 base {
-    archivesName = "no-pause-mc${minecraftVersion}"
+    archivesName = "no-pause-mc${mc}"
 }
 
 repositories {
@@ -19,19 +19,19 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${minecraftVersion}"
+    minecraft "com.mojang:minecraft:${mc}"
     mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
+    modImplementation "net.fabricmc:fabric-loader:${loader}"
 }
 
 processResources {
     inputs.property 'version', modVersion
-    inputs.property 'minecraft_version', minecraftVersion
+    inputs.property 'minecraft_version', mc
 
     filesMatching('fabric.mod.json') {
         expand(
             version: modVersion,
-            minecraft_version: minecraftVersion
+            minecraft_version: mc
         )
     }
 }

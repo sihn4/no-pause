@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "dev.layne.nopause.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": ["MinecraftMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

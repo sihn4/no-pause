@@ -7,7 +7,7 @@ mkdir -p dist
 PASSED=()
 FAILED=()
 
-while IFS= read -r version; do
+while IFS='|' read -r version family rest; do
   [[ -z "$version" ]] && continue
 
   echo

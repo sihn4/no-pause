@@ -1,17 +1,15 @@
-# Multi-version release notes
+# Versioning notes
 
-Do not upload one JAR and mark it compatible with every Minecraft version.
+Minecraft 26.1 changed the modding build pipeline substantially.
 
-No Pause builds one remapped JAR per Minecraft version because Minecraft/Fabric mappings can change between releases.
+- Minecraft 1.21.11 and older are obfuscated and use Fabric's remapping Loom plugin.
+- Minecraft 26.1 and newer are unobfuscated and use `net.fabricmc.fabric-loom`.
+- Minecraft 26.1+ requires Java 25.
 
-Recommended release workflow:
+For that reason this repository intentionally has two tiny build projects instead of forcing every Minecraft generation through one Gradle configuration.
 
-1. Push source to GitHub.
-2. Open the Actions tab.
-3. Wait for the version matrix.
-4. Only mark a Minecraft version supported when that version's job builds successfully.
-5. Runtime-test at least the versions you expect most users to download.
+Each Minecraft release gets its own JAR. This is safer for Modrinth compatibility metadata than claiming one file supports every release.
 
-The core implementation deliberately stays tiny so porting is easy:
-- set `options.pauseOnLostFocus = false` on client init
-- force it false again when window focus changes
+The actual No Pause behavior stays the same in both generations:
+1. turn off `pauseOnLostFocus` during client initialization;
+2. force it off again whenever Minecraft's window focus changes.
